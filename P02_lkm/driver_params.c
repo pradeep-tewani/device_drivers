@@ -8,6 +8,8 @@ static char *devname = "mydevice";
 static int addr[4] = { 0 };
 static int count;
 
+//insmod ./driver_params.ko irq=20 devname=mydev addr=0x1000,0x2000,0x3000
+
 // Macro for an integer parameter: name, type, permissions
 module_param(irq, int, 0660);
 MODULE_PARM_DESC(irq, "The IRQ number for the device"); // Documentation macro

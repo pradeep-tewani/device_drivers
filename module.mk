@@ -1,7 +1,7 @@
 # If called directly from the command line, invoke the kernel build system.
 ifeq ($(KERNELRELEASE),)
 
-	KERNEL_SOURCE := <Path to Linux Kernel Source>
+	KERNEL_SOURCE := <Path to Kernel Source>
 	PWD := $(shell pwd)
 
 default:
