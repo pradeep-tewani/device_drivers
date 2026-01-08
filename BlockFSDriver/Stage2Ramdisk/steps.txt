@@ -1,0 +1,32 @@
+Assignment #02
+
+Part #1
+a. Complete the TODOs in the file ram_block.c in here.
+b. Compile the dor.ko driver by typing "make".
+c. Load the driver dor.ko using "insmod dor.ko".
+d. Checkout the automatically created block device files (/dev/rb*). /dev/rb is the entire disk of 512 KiB size. rb1,
+rb2, rb3 are the primary partitions with rb2 being the extended partition and containing the 3 logical partitions rb5,
+rb6, rb7.
+e. Display the ramdisk partitions using "fdisk -l /dev/rb".
+f. Read the entire disk (/dev/rb) using the disk dump utility dd.
+g. Zero out the first sector of the disk’s first partition (/dev/rb1) again using dd.
+h. Write some text into the disk’s first partition (/dev/rb1) using cat.
+   + cat > /dev/rb1
+i Display the initial contents of the first partition (/dev/rb1) using the xxd utility.
+  + xxd /dev/rb1 | less
+j Format the third primary partition (/dev/rb3) as vfat filesystem (like your pen drive), using mkfs.vfat
+  + mkfs.vfat /dev/rb3
+  Mount the newly formatted partition using mount, say at /mnt and Use Disk usage utility df to see this partition mounted at /mnt
+  + mount -t vfat /dev/rb3 /mnt
+  You may go ahead and store your files there. But, please remember that these partitions are all on a disk on RAM, and so non-persistent.
+  Hence, Unloading the driver using ‘rmmod dor‘ would vanish everything. Though the partition needs to be unmounted using ‘umount /mnt‘ before
+  doing that.
+
+Part #2
+a. Change code to achieve the following:
+	+ Disk on RAM of size of 1MiB
+	+ Disk to have the same geometry as in Assignment #01
+b. Re-compile the dor.ko driver by typing "make".
+c. Re-load the driver dor.ko using "insmod dor.ko", after unloading the previous one using "rmmod dor"
+d. Display the ramdisk partitions using "fdisk -l -u /dev/rb".
+

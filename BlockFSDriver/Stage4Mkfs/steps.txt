@@ -1,0 +1,18 @@
+Assignment #04
+
+Part #1
+a. Have the /dev/rb* from the Assignment #02.
+b. Complete the TODOs in the file mkfs.dfs.c in here.
+c. Compile the mkfs.dfs.c application by typing "make".
+d. Make the DFS file system on the partition /dev/rb1.
+e. Observe the output dd if=/dev/rb1 count=1 | xxd | head -20"
+f. Try using dd if=/dev/rb1 count=1 | xxd -g 4| head -20 instead
+
+Part #2
+a. Complete the TODOs in the file browse_real_dfs.c in here.
+b. Compile the browse_real_dfs.c application by typing "make".
+c. Try browsing /dev/rb3 using ./browse_real_dfs. Observe and decode the output.
+d. Browse /dev/rb1 using ./browse_real_dfs and create two files x & y and list.
+e. Try the following:
+	> dd if=/dev/rb1 skip=<skip the blocks before file entry table> count=1 | xxd | head
+	> Similarly the Data blocks using above command

@@ -1,0 +1,12 @@
+Assignment #05
+
+b. Complete the TODOs in the file browse_real_dfs.c in here.
+c. Compile the browse_real_dfs.c application by typing "make".
+d. Browse /dev/rb1 using ./browse_real_dfs and do the following:
+	> Add your name & hobby as contents in files x & y, respectively and list.
+	> Read the files x & y, one by one.
+	> Change permissions of x & y to rw- and r-x, respectively and list.
+	> Delete x and list.
+e. Execute the following:
+	> dd if=/dev/rb1 skip=1 count=1 | xxd | head
+	> Verify the data for file 'x' and 'y' using above command
