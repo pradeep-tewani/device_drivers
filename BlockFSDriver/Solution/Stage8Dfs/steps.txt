@@ -1,0 +1,68 @@
+Assignment #08
+
+a. Complete the TODOs in the file real_dfs.c in here.
+b. Compile the driver dfs_final.ko by typing "make". IGNORE the "defined but not used" WARNINGS.
+c. Load the driver dfs_final.ko using "insmod dfs_final.ko".
+d. Run "dmesg" on a separate terminal. Obeserve the logs in it with various commands you type: mount, cd, ls, ...
+e. Test your driver using the following (keep observing the output on the "dmesg" terminal):
+	> grep real_dfs /proc/filesystems
+	>  mount -t real_dfs /dev/rb1 /mnt
+	> mount | grep real_dfs
+	> df /mnt # Observe the error
+	> cd /mnt # Observe the error
+	> ls /mnt # Observe the error
+f. Now, populate the function pointers in dfs_iops, especially the "lookup", and "make" again. Then, try the following:
+	>  umount /mnt &&  rmmod dfs_final &&  insmod dfs_final.ko &&  mount -t real_dfs /dev/rb1 /mnt # Observe the output on the "dmesg" terminal and press some Enter's on it
+	> cd /mnt # Should work. Observe the extra output on the "dmesg" terminal, if any. Which function is called?
+	> cd -
+	> cd - # Observe NO extra output on the "dmesg -w" terminal. Why?
+	> ls # Observe the error
+	> cd -
+g. Now, uncomment the functions in dfs_dops, and "make" again. Then, try the following:
+	>  umount /mnt &&  rmmod dfs_final &&  insmod dfs_final.ko &&  mount -t real_dfs /dev/rb1 /mnt # Observe the output on the "dmesg" terminal and press some Enter's on it
+	> cd /mnt
+	> ls -la # Should work. Observe the extra output on the "dmesg" terminal. Think through the flow
+	How many times is dfs_iterate / dfs_readdir called & why? Do you have some existing files? If yes, where did they come from? And relate the number of files with the count in dfs_iterate / dfs_readdir.
+h. Continue, with the following command:
+	> touch <your_name> # Replace <your_name> by your first name. (Should work, if dfs_inode_create is already available - otherwise enable & retry.) Observe the extra output on the "dmesg -w" terminal. Think through the flow. Why is dfs_inode_lookup called? Observe the inode number in dfs_inode_create
+	> ls -l <your_name> # Observe NO extra output on the "dmesg" terminal. Why?
+	> ls -la # Observe the extra output on the "dmesg" terminal. Notice the change in the count in dfs_iterate / dfs_readdir
+	> echo "Content" > <your_name> # Observe the error
+i. Continue, with the following command:
+	> rm <your_name> # (Should work, if dfs_inode_unlink is already available - otherwise enable & retry.) Observe the extra output on the "dmesg" terminal. Which function is called?
+	> ls -la # Observe the extra output on the "dmesg" terminal. Notice the change in the count in dfs_iterate / dfs_readdir
+	> cd -
+j. Now, implement the functions in both dfs_fops & dfs_aops, and "make" again. Then, try the following:
+	>  umount /mnt &&  rmmod dfs_final &&  insmod dfs_final.ko &&  mount -t real_dfs /dev/rb1 /mnt # Observe the output on the "dmesg -w" terminal and press some Enter's on it
+	> cd /mnt
+	> ls -la
+	> echo "Content" > <your_name> # Should work. Observe the extra output on the "dmesg -w" terminal, if any. Observe the calls to dfs_write_begin, dfs_get_block, dfs_file_release. Think through the flow
+	> ls -la # Observe the file size change. Observe the extra output on the "dmesg" terminal. Notice the change in the count in dfs_iterate / dfs_readdir. Also, observe the delayed call to dfs_writepage. Why is it delayed? Also, observe the sector accesses from the dor.ko driver
+k. Continue, with the following command:
+	> cat <your_name> # Observe the content, and call to dfs_readpage and dfs_file_release in the extra output on the "dmesg -w" terminal. Think through the flow
+	>  chmod 421 <your_name>
+	> ls -la # Observe the permission change
+	> cd -
+	>  umount /mnt &&  mount -t real_dfs /dev/rb1 /mnt
+	> cd /mnt
+	> ls -la # What's weird? What happened to the permissions, file size, ...? Why?
+	> cat <your_name> # Observe no output
+	> cd -
+l. Now, populate the function in dfs_sops, and "make" again. Then, try the following:
+	>  umount /mnt &&  mkfs.dfs /dev/rb1
+	>  rmmod dfs_final &&  insmod dfs_final.ko &&  mount -t real_dfs /dev/rb1 /mnt # Observe the output on the "dmesg -w" terminal and press some Enter's on it
+	> cd /mnt
+	> ls -la
+	> echo "Content" > <your_name>
+	> ls -la
+	> cat <your_name>
+	>  chmod 421 <your_name> # Observe the delayed call to dfs_write_inode in the extra output on the "dmesg -w" terminal. Why?
+	> ls -la # Observe the permission change
+	> cd -
+	>  umount /mnt &&  mount -t real_dfs /dev/rb1 /mnt
+	> cd /mnt
+	> cat <your_name> # Observe the written contents
+	> ls -la # What's different? What happened to the permissions? Why?
+	> cd -
+	>  umount /mnt
+m. Unload the driver dfs_final.ko using " rmmod dfs_final".
