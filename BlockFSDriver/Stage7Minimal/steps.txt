@@ -1,0 +1,16 @@
+Assignment #07
+
+a. Complete the TODOs in the files real_dfs_minimal.c & real_dfs_ops.c in here.
+b. Compile the driver dfs_first.ko by typing "make".
+c. Load the driver dfs_first.ko using "insmod dfs_first.ko".
+d. Try the following:
+	> grep sfs /proc/filesystems
+	> sudo mount -t dfs /dev/rb3 /mnt # Observe the error
+	> sudo mount -t dfs /dev/rb1 /mnt # No error (assuming mkfs.sfs has already been done)
+	> mount | grep dfs
+	> df /mnt # Observe the error
+	> stat /mnt
+	> cd /mnt # Observe the error
+	> ls /mnt # Observe the error
+	> sudo umount /mnt
+e. Unload the driver dfs_first.ko using "rmmod dfs_first".
