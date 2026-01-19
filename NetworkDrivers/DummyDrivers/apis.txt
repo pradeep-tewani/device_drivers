@@ -1,0 +1,102 @@
+include/linux/netdevice.h
+
+#define alloc_netdev(sizeof_priv, name, name_assign_type, setup) \
+    alloc_netdev_mqs(sizeof_priv, name, name_assign_type, setup, 1, 1)
+
+void free_netdev(struct net_device *dev);
+
+struct net_device *alloc_netdev_mqs(int sizeof_priv, const char *name,
+                    unsigned char name_assign_type,
+                    void (*setup)(struct net_device *),
+                    unsigned int txqs, unsigned int rxqs);
+Parameters
+int sizeof_priv
+    size of private data to allocate space for
+const char *name
+    device name format string
+unsigned char name_assign_type
+    origin of device name
+include/uapi/linux/netdevice.h
+(NET_NAME_UNKNOWN, NET_NAME_ENUM, NET_NAME_PREDICTABLE, NET_NAME_USER, NET_NAME_RENAMED)
+void (*setup)(struct net_device *)
+    callback to initialize device
+unsigned int txqs
+    the number of TX subqueues to allocate
+unsigned int rxqs
+    the number of RX subqueues to allocate
+Description
+Allocates a struct net_device with private data area for driver use and performs basic initialization. Also allocates subqueue structs for each queue on the device.
+
+
+int register_netdev(struct net_device *dev)
+    register a network device
+
+Parameters
+struct net_device *dev
+    device to register
+Description
+    Take a completed network device structure and add it to the kernel interfaces. A NETDEV_REGISTER message is sent to the netdev notifier chain. 0 is returned on success. A negative errno code is returned on a failure to set up the device, or if the name is a duplicate.
+    This is a wrapper around register_netdevice that takes the rtnl semaphore and expands the device name if you passed a format string to alloc_netdev.
+
+void unregister_netdev(struct net_device *dev);
+
+include/linux/etherdevice.h
+void eth_hw_addr_set(struct net_device *dev, const u8 *addr)
+    Assign Ethernet address to a net_device
+
+Parameters
+struct net_device *dev
+    pointer to net_device structure
+const u8 *addr
+    address to assign
+
+Description
+Assign given address to the net_device, addr_assign_type is not changed.
+
+
+void netif_start_queue(struct net_device *dev)
+    allow transmit
+Parameters
+struct net_device *dev
+    network device
+Description
+    Allow upper layers to call the device hard_start_xmit routine.
+
+
+void netif_stop_queue(struct net_device *dev)
+    stop transmitted packets
+Parameters
+struct net_device *dev
+    network device
+
+Description
+    Stop upper layers calling the device hard_start_xmit routine. Used for flow control when transmit resources are unavailable.
+
+
+void *netdev_priv(const struct net_device *dev)¶
+    access network device private data
+
+Parameters
+const struct net_device *dev
+    network device
+
+Description
+Get network device private data
+
+include/linux/skbuff.h
+void skb_reserve(struct sk_buff *skb, int len)
+
+void netif_stop_queue(struct net_device *dev)
+
+inline bool netif_queue_stopped(const struct net_device *dev)
+
+void netif_wake_queue(struct net_device *dev)
+
+include/linux/u64_stats_sync.h
+void u64_stats_add(u64_stats_t *p, unsigned long val)
+void u64_stats_inc(u64_stats_t *p)
+u64 u64_stats_read(const u64_stats_t *p)
+
+void dev_kfree_skb(struct sk_buff *skb);
+
+void skb_queue_head_init(struct sk_buff_head *list); 

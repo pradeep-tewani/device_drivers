@@ -1,0 +1,47 @@
+Assignment-1:
+The objective is to register the network interface and play around with configuration
+1. Complete all the todos (1 to 9) in dummy.c
+2. Build and load the module dummy.ko
+3. Try  the following
+	+ ifconfig and check if the interface is listed
+ 	+ ifconfig -a
+	+ ip link set dev dummy0 address EE:1C:38:02:76:D9
+	+ ip link show
+	+ echo 0 > /sys/class/net/dummy0/carrier (Observe the error)
+	+ ifconfig dummy0 192.168.9.2 up
+	+ echo 0 > /sys/class/net/dummy0/carrier
+	+ ip link show (Observe the 'NO-Carrier' status)
+	+ get the various stats from /sys/class/net/dummy0/statistics/
+	
+Assignment-2
+The objective is to simulate the ping by manipulating the ICMP packet
+1. Complete all todos 2.1 and 2.2 in dummy.c
+2. Complete all the todos in dummy_hw.c
+3. Load dummy_hw.ko and then dummy.ko
+4. sysctl -w net.ipv6.conf.<your_interface>.disable_ipv6=1
+5. ifconfig dummy0 192.168.9.2 up
+6. ping 192.168.9.3
+
+Assignment-3
+The objective here is to simulate 2 network interfaces communicating with each other
+1. Complete all the todos (1 to 24) in snull.c
+2. Compile with make and this would generate snull.ko
+3. Transfer & load snull.ko
+4. Observe that it creates 2 interfaces - sn0 and sn1
+5. Disable the ipv6 for sn0 and sn1 with
+   $ sysctl -w net.ipv6.conf.sn0.disable_ipv6=1
+   $ sysctl -w net.ipv6.conf.sn1.disable_ipv6=1
+6. configure the following ip addresses
+   $ ifconfig sn0 192.168.0.1 up
+   $ ifconfig sn1 192.168.1.2 up
+7. Ping 192.168.0.2 and it should succeed. Similarly, ping 192.168.1.1 and it should succeed
+
+Assignment-4
+The objective for this assignment is to demonstrate the usage of NAPI.
+1. Copy functions snull_napi_interrupt and snull_poll from snull_napi.c to snull.c
+2. Complete TODOs 2.1 to 2.7 in snull.c
+3. Compile with make and this would generate snull.ko
+4. Transfer & load snull.ko
+5. Observe that snull_poll gets invoked
+
+
