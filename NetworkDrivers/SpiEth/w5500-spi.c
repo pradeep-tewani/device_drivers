@@ -49,7 +49,7 @@ int w5500_read(struct sped_net *priv, u16 offset, u8 block, u8 *data)
 	/*
 	 * TODO: 2.4: Invoke spi_write_then_read(spi_dev, wbuf, wlen, rbuf, rlen)
 	 */
-	return 0
+	return 0;
 }
 
 int w5500_read16(struct sped_net *priv, u16 offset, u8 block)
@@ -248,6 +248,7 @@ static struct sk_buff *w5500_rx_skb(struct net_device *ndev)
 	u16 offset;
 	u8 header[2];
 	// TODO 7.8: Get the free space in RX buffer by using w5500_read16
+	u16 rx_buf_len;
 
 	if (rx_buf_len == 0)
 		return NULL;
@@ -420,6 +421,7 @@ static irqreturn_t w5500_interrupt(int irq, void *ndev_instance)
 static int sped_net_open(struct net_device *ndev)
 {
 	//TODO 5.1: Get the sped_net with netdev_priv
+	struct sped_net *priv;
 
 	dev_info(&priv->spidev->dev, "sped Open\n");
 	//TODO 5.2: Stop the queue with netdev_stop_queue
