@@ -1,0 +1,19 @@
+Assignment-1
+------------
+Objective is to list the Network Interface
+1. Complete TODOs 1.1 to 1.17
+
+Assignment-2
+------------
+Objective is to implement the helper functions to perform the read and write operations  
+1. Complete the TODOs 2.1 to 2.6
+
+Assignment-3
+------------
+Objective is to initialize the SPI Ethernet device
+1. Complete TOODOs 3.1 to 3.7
+
+Assignment-4
+------------
+Objective is to implement Open and Release netdev opations
+Complete TODOs 4.1 to 4.5 and TODOs 5.1 to 5.10  
