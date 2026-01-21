@@ -1,0 +1,283 @@
+Ftrace Hands-on
+----------------
+ mount -t debugfs nodev /sys/kernel/debug/
+ cd /sys/kernel/debug/tracing/
+ cat available_tracers 
+ cat current_tracer
+ echo 0 > tracing_on
+ 
+1. Function Tracing
+ 
+ echo function > current_tracer
+ # echo 1 > tracing_on
+# echo 0 > tracing_on 
+cat trace
+
+2. Check available filters
+cat available_filter_functions
+cat set_ftrace_filter
+
+3. Function Graphy Tracing
+# echo function_graph > current_tracer 
+# echo 1 > tracing_on
+# echo 0 > tracing_on 
+# cat trace
+
+4. Function Tracers - The "Wildcard" Filter (Tracing a Module)
+# trace-cmd reset
+# cat available_tracers 
+hwlat function_graph wakeup_dl wakeup_rt wakeup irqsoff function nop
+
+# cat tracing_on 
+1
+# echo 0 > tracing_on 
+
+# echo function > current_tracer 
+
+# echo "ext4_*" > set_ftrace_filter
+# echo 1 > tracing_on 
+# cp <file1> <file2>
+
+cd /sys/kernel/debug/tracing
+# echo 0 > tracing_on 
+# cat trace
+
+5. Stack Tracing
+This experiment shows you the exact path (call stack) taken to reach a specific kernel function. It is invaluable for finding "who called what."
+# echo function > current_tracer
+# echo vfs_read > set_ftrace_filter
+# echo 1 > options/func_stack_trace 
+# cat tracing_on 
+0
+# echo 1 > tracing_on 
+# echo 0 > tracing_on 
+# cat trace
+trace             trace_marker      trace_options
+trace_clock       trace_marker_raw  trace_pipe
+# cat trace
+
+6. Function Graph for specific function
+trace-cmd reset
+# echo vfs_read > set_graph_function
+# echo 3 > max_graph_depth
+# echo function_graph > current_tracer
+# cat trace
+# tracer: function_graph
+
+7. Experiment 3: PID Filtering
+# echo $$
+164
+
+# echo 164 > set_ftrace_pid
+# cat trace_pipe
+
+8. The "Deep Dive" into a System Call
+# echo "do_mkdirat" > set_graph_function
+# echo 1 > tracing_on
+# mkdir ~/abc
+# echo 0 > tracing_on 
+# cat trace
+
+9. Finding "Hidden" Latency with Thresholds
+Goal: Automatically capture a trace only when a specific latency threshold is exceeded.
+Reset and set function tracer:
+ $ echo function > /sys/kernel/tracing/current_tracer
+Set a latency threshold (e.g., 50 microseconds):
+ $ echo 50 > /sys/kernel/tracing/tracing_thresh
+Enable the "display-graph" option:
+ # echo 1 > /sys/kernel/tracing/options/funcgraph-proc
+ If any function takes longer than 50µs, it will be recorded in the trace file.
+
+
+Experimenting with kdump
+------------------------
++ Installation
+ $ sudo apt update
+ $ sudo apt install kdump-tools
+During the installation, you will be prompted with dialog similar to below:
+|------------------------| Configuring kdump-tools |------------------------|
+ |                                                                           |
+ |                                                                           |
+ | If you choose this option, the kdump-tools mechanism will be enabled.  A  |
+ | reboot is still required in order to enable the crashkernel kernel        |
+ | parameter.                                                                |
+ |                                                                           |
+ | Should kdump-tools be enabled be default?                                 |
+ |                                                                           |
+ |                    <Yes>                       <No>     
+ 
+ Select <Yes>
+ 
+ Otherwise at later point of time, it can be enabled with:
+ $ dpkg-reconfigure kdump-tools
+ 
+ And you will also need to edit /etc/default/kdump-tools to enable kdump by including the following line:
+
+USE_KDUMP=1
+ 
+- Next Install below things
+ $ sudo crash kexec-tools makedumpfile -y
+ $ sudo grep USE_KDUMP /etc/default/kdump-tools
+Output
+# USE_KDUMP - controls kdump will be configured
+USE_KDUMP=1
+
+$ sudo grep LOAD_KEXEC /etc/default/kexec
+Output
+LOAD_KEXEC=true
+
+If not set, modify /etc/default/kexec to add the same.
+
+$ sudo kdump-config show
+Output
+ * no crashkernel= parameter in the kernel cmdline
+DUMP_MODE:              kdump
+USE_KDUMP:              1
+KDUMP_COREDIR:          /var/crash
+crashkernel addr:
+   /var/lib/kdump/vmlinuz
+kdump initrd:
+   /var/lib/kdump/initrd.img
+current state:    Not ready to kdump
+
+kexec command:
+  no kexec command recorded
+  
+sudo service kdump-tools-dump start
+sudo service kdump-tools-dump status
+
+Reboot with:
+$ sudo systemctl reboot
+
+$ sudo kdump-config show
+
+Output
+DUMP_MODE:              kdump
+USE_KDUMP:              1
+KDUMP_COREDIR:          /var/crash
+crashkernel addr: 0xb3000000
+   /var/lib/kdump/vmlinuz: symbolic link to /boot/vmlinuz-5.15.0-46-generic
+kdump initrd:
+   /var/lib/kdump/initrd.img: symbolic link to /var/lib/kdump/initrd.img-5.15.0-46-generic
+current state:    ready to kdump
+
+kexec command:
+  /sbin/kexec -p --command-line="BOOT_IMAGE=/boot/vmlinuz-5.15.0-46-generic root=UUID=4d1266d2-c1f9-4087-af92-2d60c8c153e4 ro net.ifnames=0 biosdevname=0 netcfg/do_not_use_netplan=true reset_devices systemd.unit=kdump-tools-dump.service nr_cpus=1 irqpoll nousb" --initrd=/var/lib/kdump/initrd.img /var/lib/kdump/vmlinuz
+  
+sudo cat /proc/cmdline
+Output
+BOOT_IMAGE=/boot/vmlinuz-5.15.0-46-generic root=UUID=4d1266d2-c1f9-4087-af92-2d60c8c153e4 ro net.ifnames=0 biosdevname=0 netcfg/do_not_use_netplan=true crashkernel=512M-:192M
+
+If issue is not resolved yet, then  add the following in /etc/default/grub.d/kdump-tools.cfg:
+GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT crashkernel=512M"
+sudo dpkg-reconfigure kdump-tools sources this file
+
+sudo dmesg | grep -i crash
+
+Output:
+[    0.000000] Command line: BOOT_IMAGE=/boot/vmlinuz-6.11.1 root=UUID=c92edfa7-898a-47bc-b969-937a1bc9cb93 ro quiet splash crashkernel=512M
+[    0.008944] crashkernel reserved: 0x000000009f000000 - 0x00000000bf000000 (512 MB)
+[    0.042559] Kernel command line: BOOT_IMAGE=/boot/vmlinuz-6.11.1 root=UUID=c92edfa7-898a-47bc-b969-937a1bc9cb93 ro quiet splash crashkernel=512M
+
+
+$ cat /sys/kernel/kexec_crash_loaded
+Should be 1, 
+
+Otherwise run:
+$ sudo kdump-config load
+
+$ cat /proc/sys/kernel/sysrq (Should be 1)
+If not then, 
+$ sudo sysctl -w kernel.sysrq=1
+
+echo c > /proc/sysrq-trigger
+ 
+The system would reboot and then you would be able to vmcore under /var/crash/<timestamp>/ files by name dmesg.<timestamp>  dump.<timestamp>
+
+Next step is to run the crash utility with:
+sudo crash /boot/vmlinux-<kernel version> /var/crash/<timestamp>/dump.timestamp
+
+This should provide the prompt as below:
+
+crash> 
+Try out the various things such as log, bt, ps, vm, files, dev, foreach task
+
+if prompt doesn't shows up and crash terminates with the error such as crash: page excluded: kernel virtual address: ffff888124fd0948  type: "xa_node.slots[off]"", then run the crash utitility with following command:
+sudo crash --zero_excluded  /boot/vmlinux-<kernel version>  /var/crash/<timestamp>/dump.timestamp
+
+KGDB for Kernel Debugging
+-------------------------
+1. Exit the minicom as the port would be used for debugging & login using ssh
+$ ssh root@192.168.7.2
+2. Trigger the kgdb
+$ echo ttyS0 > /sys/module/kgdboc/parameters/kgdboc
+$ echo g > /proc/sysrq-trigger (This would trigger the kgdb and ssh would freeze)
+3. On the Host
+$ sudo chmod 666 /dev/ttyUSB0
+$ arm-none-linux-gnueabihf-gdb <path to buildroot>/output/build/linux-6.6.63/vmlinux
+$ target remote /dev/ttyUSB0
+This would attach the debugger to the target
+$ b vfs_read
+$ c (This would break at vfs_read)
+$ n (Next instructions)
+
+KGDB for Debugging the Existing Kernel Module
+---------------------------------------------
+1. Exit the minicom as the port would be used for debugging & login using ssh
+$ ssh root@192.168.7.2
+2. Load the Kernel Module (Should be compiled with -O0 optimization and -g flag) 
+$ insmod buggy.ko
+3. Retrieve the address of the section namely '.text', '.data', and '.bss' (optional)
+ $ cd /sys/module/buggy/sections/
+ $ cat .text .data .bss
+ 
+4. Trigger the kgdb on Target
+$ echo ttyS0 > /sys/module/kgdboc/parameters/kgdboc
+$ echo g > /proc/sysrq-trigger (This would trigger the kgdb and ssh would freeze)
+5. On the Host
+$ sudo chmod 666 /dev/ttyUSB0
+$ arm-none-linux-gnueabihf-gdb <path to buildroot>/output/build/linux-6.6.63/vmlinux
+$ target remote /dev/ttyUSB0
+6. Add module addresses to the GDB with command
+<gdb> add-symbol-file buggy.ko 0xbf031000 -s .data 0xbf033000 -s .bss 0xbf0333c0
+7. Set the breakpoint in the module with
+ <gdb> b buggy.c:my_read
+ <gdb> c
+8. On the target, try 
+ $ cat /dev/debug
+This should hit the breakpoint
+
+Using perf
+----------
+ + For installing perf, use perf use:
+ sudo apt install linux-tools-common linux-tools-generic linux-tools-$(uname -r)
+ 
+ + If you frequently update your kernel, you can install the generic metadata package which attempts to keep the tools in sync:
+sudo apt install linux-tools-generic
+
++ If you run perf and see a warning that it is not found for your kernel version, it usually means the package for your exact kernel is missing from the repository. In this case: 
+List available versions: apt search linux-tools
+Manual Linking: If a "close enough" version is installed, you can manually link it:
+sudo ln -s $(find /usr/lib/linux-tools/*/perf | head -1) /usr/local/bin/perf
+
+5. Verification
+Confirm the installation was successful by checking the version:
+perf --version
+
++ perf-top
++ sudo perf top -p [PID]
++ sudo perf top -s comm,dso,symbol
+
+Git repo for flame graphs
+git clone --depth 1 https://github.com/brendangregg/FlameGraph
+
+perf script | stackcollapse-perf.pl | flamegraph.pl > output.svg
+
+
+
+
+
+
+
+
+
